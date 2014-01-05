@@ -17,9 +17,8 @@ public abstract class GoogleAuthenticator {
 	 * @see TOTPSecret#encode(byte[])
 	 */
 	public static final String getQRUrl(String username, String host, String secret) {
-		String format = "https://www.google.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=otpauth://totp/%s@%s%%3Fsecret%%3D%s";
+		String format = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=otpauth://totp/%s@%s?secret=%s";
 		return String.format(format, username, host, secret);
 	}
-	
 	
 }
