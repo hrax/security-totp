@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>TOTP - Google Authenticator Compatibility Demo</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<!-- Bootstrap -->
+		<link href="${request}/resources/css/bootstrap.css" rel="stylesheet" media="screen">
+		<link href="${request}/resources/css/theme.css" rel="stylesheet" media="screen">		
+		<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+		<!--[if lt IE 9]>
+		<script src="${request}/resources/js/html5shiv.js"></script>
+		<script src="${request}/resources/js/respond.min.js"></script>
+		<![endif]-->
+		<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+		<script src="http://code.jquery.com/jquery.js"></script>
+		<script src="${request}/resources/js/totp.js"></script>
+	</head>
+	<body>
+		<div class="container">
+			<h1>Security TOTP - Google Authenticator Compatibility Demo</h1>
+			<div class="alert alert-warning">
+			<p>This is only demo site. It is never safe to transfer TOTP Secret via unsecured protocol or store it in usecured cookie in user's browser!
+			<br>This demo requires enabled cookies and HTML5 compatibile browser</p>
+			</div>
+			<div id="wrapper"></div>
+			<script type="text/template" id="template">
+			<div class="row">
+				<div class="col-md-6 col-lg-6">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<h2>Scan QR</h2>
+						</div>
+						<div class="panel-body">
+							<img src="{{qr}}">
+						</div>
+					</div>
+				</div>
+				<div class="col-md-6 col-lg-6">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<h2>Manual entry</h2>
+						</div>
+						<div class="panel-body">
+							<p>Account: {{username}}@{{host}}
+							<br>Key: {{secret}}
+							<br>Time Based: true
+							##<br>Valid until: {{validUntil}}
+							</p>
+							<p><a class="btn btn-primary" href="${request}/totp/refresh" id="refresh">Refresh TOTP</a> <a class="btn btn-warning" href="${request}/totp/destroy" id="destroy">Destroy TOTP</a></p>
+						</div>
+					</div>
+				</div>
+			</div>
+			</script>
+			<div class="row">
+				<div class="col-md-4 col-lg-4">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<h2>Generate #if ($secret)new #end TOTP</h2>
+						</div>
+						<div class="panel-body">
+							<form method="post" action="${request}/totp/generate" id="generate">
+								<div class="form-group">
+									<label>Username</label> 
+									<input type="text" name="username" class="form-control">
+								</div>
+								<p><button type="submit" class="btn btn-success">Generate!</button></p>
+							</form>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-4 col-lg-4">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<h2>Verify TOTP</h2>
+						</div>
+						<div class="panel-body">
+							<form method="post" action="${request}/totp/verify" id="verify">
+								<div class="form-group">
+									<label>Code</label>
+									<input type="text" name="code" maxlength="6" class="form-control">
+								</div>
+								<p><button type="submit" class="btn btn-success">Verify!</button></p>
+							</form>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-4 col-lg-4 box">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<h2>Download</h2>
+						</div>
+						<div class="panel-body">
+							<p>Source code available for checkout at <a href="https://github.com/hrax/security-totp">github</a>.</p>
+						</div>
+					</div>
+				</div>
+			</div>
+			<footer>
+				<small>by <a href="http://www.elepha.info">Gregor &quot;hrax&quot; Magdolen</a>, 2014</small>
+			</footer>
+		</div>
+		<script type="text/javascript">
+		$(document).ready(function() {
+			var totp = new TOTP('#template', '#wrapper');
+			#if (${secret})
+			totp.show({
+				"qr": "${qr}",
+				"username": "${username}",
+				"host": "${host}",
+				"secret": "${secret}"
+			});
+			#end
+			totp.attach();
+		});
+		</script>
+	</body>
+<html>
