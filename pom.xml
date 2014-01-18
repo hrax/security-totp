@@ -10,9 +10,9 @@
 	</parent>
 	
 	<artifactId>security-totp-demo</artifactId>
-	<version>0.1</version>
+	<version>0.0.1-SNAPSHOT</version>
 	
-	<name>Security TOTP Demo Webapp</name>
+	<name>Security TOTP Demo</name>
 	<url>http://security-totp.appspot.com</url>
 	
 	<properties>
@@ -111,4 +111,9 @@
             </plugin>
 	</plugins>
   </build>
+	<description>Demo application that demonstrates capabilities to generate TOTP security and code authentication as well as Google Authenticator compatilibity in default configuration.</description>
+	<organization>
+		<name>Gregor &quot;hrax&quot; Magdolen</name>
+		<url>http://www.elepha.info</url>
+	</organization>
 </project>

@@ -1,3 +1,7 @@
-footer {
-	margin-top: 3em;
+header {
+	margin-bottom: 2em;
+}
+
+.row .panel-body {
+	min-height: 230px;
 }

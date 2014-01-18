@@ -64,23 +64,6 @@ TOTP.prototype = {
 					}
 				});
 			});
-		},
-		
-		attach: function() {
-			var totp = this;
-			$('#generate').submit(function(e){
-				e.preventDefault();
-				totp._form($(this), function(data){
-					if (data['error']) {
-						alert(data['error']);
-						return;
-					}
-					totp.show(data);
-					$('#generate').find('input[name=username]').val('');
-				}, function (xhr, err){
-					alert("Unexpected error!");
-				});
-			});
 			$('#verify').submit(function(e){
 				e.preventDefault();
 				totp._form($(this), function(data){
@@ -94,6 +77,23 @@ TOTP.prototype = {
 						alert('Code valid!');
 					}
 					$('#verify').find('input[name=code]').val('');
+				}, function (xhr, err){
+					alert("Unexpected error!");
+				});
+			});
+		},
+		
+		attach: function() {
+			var totp = this;
+			$('#generate').submit(function(e){
+				e.preventDefault();
+				totp._form($(this), function(data){
+					if (data['error']) {
+						alert(data['error']);
+						return;
+					}
+					totp.show(data);
+					$('#generate').find('input[name=username]').val('');
 				}, function (xhr, err){
 					alert("Unexpected error!");
 				});
