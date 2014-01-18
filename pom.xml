@@ -88,7 +88,7 @@
 		</dependency>
 	</dependencies>
 	<build>
-    	<finalName>example-totp</finalName>
+    	<finalName>security-totp-demo</finalName>
     	<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
