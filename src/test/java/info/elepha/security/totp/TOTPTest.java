@@ -29,7 +29,7 @@ public class TOTPTest {
 	@Test
 	// TODO: create black box test?
 	public void testRfcCompliancy() throws Exception {
-		TOTP totp = new TOTP(TOTP.DEFAULT_ALGORITHM, rfcInterval, rfcSize);
+		TOTP totp = new TOTP(TOTP.DEFAULT_ALGORITHM, rfcInterval, rfcSize, TOTP.DEFAULT_STEPS);
 		for (int i = 0; i < rfcTime.length; i++) {
 			long time = rfcTime[i] / rfcInterval;
 			int code = totp.generate(rfcSecret.getBytes(), time);

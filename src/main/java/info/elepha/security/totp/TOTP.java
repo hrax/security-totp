@@ -37,6 +37,11 @@ public final class TOTP {
 	public static final int DEFAULT_INTERVAL = 30;
 	
 	/**
+	 * Default time interval steps to check into past for validity
+	 */
+	public static final int DEFAULT_STEPS = 1;
+	
+	/**
 	 * Default code length (Google Authenticator Compatible)
 	 */
 	public static final int DEFAULT_LENGTH = 6;
@@ -47,11 +52,13 @@ public final class TOTP {
 	
 	private final int length;
 	
+	private final int steps;
+	
 	/**
 	 * Create default TOTP instance that is Google Authenticator compatible
 	 */
 	public TOTP() {
-		this(DEFAULT_ALGORITHM, DEFAULT_INTERVAL, DEFAULT_LENGTH);
+		this(DEFAULT_ALGORITHM, DEFAULT_INTERVAL, DEFAULT_LENGTH, DEFAULT_STEPS);
 	}
 	
 	/**
@@ -60,7 +67,11 @@ public final class TOTP {
 	 * @param interval the time interval to use
 	 */
 	public TOTP(int interval) {
-		this(DEFAULT_ALGORITHM, interval, DEFAULT_LENGTH);
+		this(DEFAULT_ALGORITHM, interval, DEFAULT_LENGTH, DEFAULT_STEPS);
+	}
+
+	public TOTP(int interval, int length, int steps) {
+		this(DEFAULT_ALGORITHM, interval, length, steps);
 	}
 	
 	/**
@@ -70,10 +81,11 @@ public final class TOTP {
 	 * @param interval the time interval in seconds to use
 	 * @param length the code length to use; must be between 1 and 8
 	 */
-	public TOTP(String algorithm, int interval, int length) {
+	public TOTP(String algorithm, int interval, int length, int steps) {
 		this.algorithm = algorithm;
-		this.interval = interval;
-		this.length = length;
+		this.interval = Math.abs(interval);
+		this.length = Math.abs(length);
+		this.steps = Math.abs(steps);
 		
 		if (length > DIGITS_POWER.length || length < 1) {
 			throw new IllegalArgumentException("Length must be between 1 and 8");
@@ -102,6 +114,13 @@ public final class TOTP {
 	}
 	
 	/**
+	 * @return the steps being used
+	 */
+	public int getSteps() {
+		return steps;
+	}
+	
+	/**
 	 * Generates TOTP code for current time interval
 	 * 
 	 * @param secret the secret to use
@@ -121,16 +140,16 @@ public final class TOTP {
 	 * @see TOTPSecret#generate()
 	 */
 	public boolean validate(byte[] secret, int code) {
-		int win = getInterval();
-		long t = getCurrentTimeInterval();
+		int steps = getSteps();
+		long t = getCurrentTimeInterval() - 1;
 		
-		for (int i = -win; i <= win; ++i) {
+		for (int i = 1; i >= -steps; i--) {
 			int hash = generate(secret, t + i);
 			if (hash == code) {
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
 	
