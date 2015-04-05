@@ -106,32 +106,32 @@ public class TOTPManager {
 	/**
 	 * @return the algorithm being used
 	 */
-	public final String getAlgorithm() {
+	public String getAlgorithm() {
 		return algorithm;
 	}
 	
 	/**
 	 * @return the interval being used
 	 */
-	public final int getInterval() {
+	public int getInterval() {
 		return interval;
 	}
 	
 	/**
 	 * @return the length being used
 	 */
-	public final int getLength() {
+	public int getLength() {
 		return length;
 	}
 	
 	/**
 	 * @return the steps being used
 	 */
-	public final int getSteps() {
+	public int getSteps() {
 		return steps;
 	}
 	
-	public final int getT0() {
+	public int getT0() {
 		return t0;
 	}
 	

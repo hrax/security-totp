@@ -70,16 +70,26 @@ public class TOTPManagerTest {
 		byte[] secret = rfcSecret.getBytes();
 		
 		TOTPManager spy = Mockito.spy(new TOTPManager(rfcInterval, rfcSize, 1));
-		Mockito.when(spy.getCurrentTimeInterval()).thenReturn(1L, 2L, 3L); // for current time 59L, 60L, 90L
+		Mockito.when(spy.getCurrentTimeInterval()).thenReturn(1L, 2L, 2L, 3L, 3L, 4L); // for current time 59L, 60L, 90L, 120L
+		Mockito.when(spy.getSteps()).thenReturn(1, 0, 1, 2);
 				
 		// generate first code for interval 1
 		String code = spy.generate(secret);
 		assertEquals(rfcCode[0], code);
 		
-		// run validation for interval 2
+		// run validation for interval 2 and steps 1
 		assertTrue(spy.validate(secret, code));
 		
-		// run validation for interval 3
+		// run validation for interval 2 and steps 0
+		assertFalse(spy.validate(secret, code));
+		
+		// run validation for interval 3 and steps 1
+		assertFalse(spy.validate(secret, code));
+		
+		// run validation for interval 3 and steps 2
+		assertTrue(spy.validate(secret, code));
+		
+		// run validation for interval 4 and steps 2
 		assertFalse(spy.validate(secret, code));
 	}
 	
