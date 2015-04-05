@@ -2,8 +2,6 @@ package info.elepha.security.totp;
 
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
-import java.sql.Date;
-import java.util.Calendar;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -48,6 +46,9 @@ public class TOTPManager {
 	 */
 	public static final int DEFAULT_LENGTH = 6;
 	
+	/**
+	 * Default time 0 for the interval
+	 */
 	public static final int DEFAULT_T0 = 0;
 	
 	private final String algorithm;
@@ -67,6 +68,10 @@ public class TOTPManager {
 		this(DEFAULT_ALGORITHM, DEFAULT_INTERVAL, DEFAULT_LENGTH, DEFAULT_STEPS, DEFAULT_T0);
 	}
 	
+	/**
+	 * @param algorithm the algorithm to use; available HmacSHA1, HmacSHA256, HmacSHA512
+	 * @param interval the time interval in seconds to use
+	 */
 	public TOTPManager(String algorithm, int interval) {
 		this(algorithm, interval, DEFAULT_LENGTH, DEFAULT_STEPS, DEFAULT_T0);
 	}
@@ -80,6 +85,11 @@ public class TOTPManager {
 		this(DEFAULT_ALGORITHM, interval, DEFAULT_LENGTH, DEFAULT_STEPS, DEFAULT_T0);
 	}
 
+	/**
+	 * @param interval the time interval in seconds to use
+	 * @param length the code length to use; must be between 1 and 8
+	 * @param steps the steps in history to validate code
+	 */
 	public TOTPManager(int interval, int length, int steps) {
 		this(DEFAULT_ALGORITHM, interval, length, steps, DEFAULT_T0);
 	}
@@ -90,13 +100,15 @@ public class TOTPManager {
 	 * @param algorithm the algorithm to use; available HmacSHA1, HmacSHA256, HmacSHA512
 	 * @param interval the time interval in seconds to use
 	 * @param length the code length to use; must be between 1 and 8
+	 * @param steps the steps in history to validate code
+	 * @param t0 the time 0 to be used for interval
 	 */
 	public TOTPManager(String algorithm, int interval, int length, int steps, int t0) {
 		this.algorithm = algorithm;
 		this.interval = Math.abs(interval);
 		this.length = Math.abs(length);
 		this.steps = Math.abs(steps);
-		this.t0 = t0;
+		this.t0 = Math.abs(t0);
 		
 		if (length > DIGITS_POWER.length || length < 1) {
 			throw new IllegalArgumentException("Length must be between 1 and 8");
@@ -131,6 +143,9 @@ public class TOTPManager {
 		return steps;
 	}
 	
+	/**
+	 * @return the time 0 to be used for interval
+	 */
 	public int getT0() {
 		return t0;
 	}
@@ -147,6 +162,18 @@ public class TOTPManager {
 	}
 	
 	/**
+	 * Generates TOTP code for given time
+	 * 
+	 * @param secret the secret to use
+	 * @param time the time in milliseconds to generate code for
+	 * @return generated code
+	 * @see Secret#generate()
+	 */
+	public final String generateFor(byte[] secret, long time) {
+		return generate(secret, getTimeInterval(time));
+	}
+	
+	/**
 	 * Validates TOTP code for current time interval
 	 * 
 	 * @param secret the secret to use
@@ -155,8 +182,21 @@ public class TOTPManager {
 	 * @see Secret#generate()
 	 */
 	public final boolean validate(byte[] secret, String code) {
+		return validateFor(secret, code, System.currentTimeMillis());
+	}
+	
+	/**
+	 * Validates TOTP code for current time interval
+	 * 
+	 * @param secret the secret to use
+	 * @param code the code to validate
+	 * @param time the time in milliseconds to validate code against
+	 * @return true if code is valid
+	 * @see Secret#generate()
+	 */
+	public final boolean validateFor(byte[] secret, String code, long time) {
 		int steps = getSteps();
-		long itvl = getCurrentTimeInterval();
+		long itvl = getTimeInterval(time);
 		
 		for (int i = 0; i <= steps; i++) {
 			boolean result = validate(secret, itvl - i, code);
@@ -169,7 +209,7 @@ public class TOTPManager {
 	}
 	
 	/**
-	 * Generates TOTP code for give time
+	 * Generates TOTP code for give time interval
 	 * 
 	 * @param secret the secret to use
 	 * @param itvl the time interval to use
