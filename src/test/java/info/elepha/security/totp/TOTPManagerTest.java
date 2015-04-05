@@ -38,7 +38,7 @@ public class TOTPManagerTest {
 		TOTPManager totp = new TOTPManager(rfcInterval, rfcSize, 1);
 		for (int i = 0; i < rfcTime.length; i++) {
 			long t = rfcTime[i] * 1000;
-			String code = totp.generate(rfcSecret.getBytes(), totp.getTimeInterval(t));
+			String code = totp.generateOTP(rfcSecret.getBytes(), totp.getTimeInterval(t));
 			assertEquals(rfcCode[i], code);
 		}
 	}
@@ -52,7 +52,7 @@ public class TOTPManagerTest {
 		List<String> codes = new ArrayList<String>(); // holds generated code for each interval
 		
 		for (long i : itvls) {
-			codes.add(manager.generate(secret, i));
+			codes.add(manager.generateOTP(secret, i));
 		}
 		
 		// validate that the codes are not the same

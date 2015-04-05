@@ -158,7 +158,7 @@ public class TOTPManager {
 	 * @see Secret#generate()
 	 */
 	public final String generate(byte[] secret) {
-		return generate(secret, getCurrentTimeInterval());
+		return generateOTP(secret, getCurrentTimeInterval());
 	}
 	
 	/**
@@ -169,8 +169,8 @@ public class TOTPManager {
 	 * @return generated code
 	 * @see Secret#generate()
 	 */
-	public final String generateFor(byte[] secret, long time) {
-		return generate(secret, getTimeInterval(time));
+	public final String generate(byte[] secret, long time) {
+		return generateOTP(secret, getTimeInterval(time));
 	}
 	
 	/**
@@ -182,7 +182,7 @@ public class TOTPManager {
 	 * @see Secret#generate()
 	 */
 	public final boolean validate(byte[] secret, String code) {
-		return validateFor(secret, code, System.currentTimeMillis());
+		return validate(secret, code, System.currentTimeMillis());
 	}
 	
 	/**
@@ -194,12 +194,12 @@ public class TOTPManager {
 	 * @return true if code is valid
 	 * @see Secret#generate()
 	 */
-	public final boolean validateFor(byte[] secret, String code, long time) {
+	public final boolean validate(byte[] secret, String code, long time) {
 		int steps = getSteps();
 		long itvl = getTimeInterval(time);
 		
 		for (int i = 0; i <= steps; i++) {
-			boolean result = validate(secret, itvl - i, code);
+			boolean result = validateOTP(secret, itvl - i, code);
 			if (result) {
 				return true;
 			}
@@ -217,7 +217,7 @@ public class TOTPManager {
 	 * @see Secret#generate()
 	 * @see #getTimeInterval(long)
 	 */
-	final String generate(byte[] secret, long itvl) {
+	final String generateOTP(byte[] secret, long itvl) {
 		byte[] text = ByteBuffer.allocate(8).putLong(itvl).array();
 		byte[] hash = getShaHash(secret, text);
 		
@@ -232,8 +232,8 @@ public class TOTPManager {
 		return result;
 	}
 	
-	final boolean validate(byte[] secret, long itvl, String code) {
-		String hash = generate(secret, itvl);
+	final boolean validateOTP(byte[] secret, long itvl, String code) {
+		String hash = generateOTP(secret, itvl);
 		return hash.equals(code);
 	}
 	
