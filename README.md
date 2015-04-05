@@ -7,16 +7,17 @@ Provides utility class for generating links for QR codes that can be scanned by 
 
 It is very easy to use:
 
-	TOTP totp = new TOTP();
+	TOTPManager manager = new TOTPManager();
 	
-	byte[] secret = TOTPSecret.generate();
-		
-	String encoded = TOTPSecret.encode(secret);
+	byte[] secret = Secret.generate();
+	
+	// generate Google Authenticator QR Code
+	String encoded = Secret.toBase32(secret);
 	String qr = GoogleAuthenticator.getQRUrl("jdoe", "example.com", encoded);
 	
-	byte[] decoded = TOTPSecret.decode(key);
-	int code = totp.generate(secret);
-	boolean valid = totp.validate(decoded, code);
+	// generate TOTP code
+	int code = manager.generate(secret);
+	boolean valid = manager.validate(secret, code); // by default code is valid for 60 seconds
 	
 Demo available for preview at: http://security-totp.appspot.com/
 	
