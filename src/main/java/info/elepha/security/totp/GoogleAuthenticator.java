@@ -13,8 +13,8 @@ public abstract class GoogleAuthenticator {
 	 * @param host the host
 	 * @param secret the secret
 	 * @return QR code url
-	 * @see TOTPSecret#generate()
-	 * @see TOTPSecret#encode(byte[])
+	 * @see Secret#generate()
+	 * @see Secret#encode(byte[])
 	 */
 	public static final String getQRUrl(String username, String host, String secret) {
 		String format = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=otpauth://totp/%s@%s?secret=%s";

@@ -2,6 +2,8 @@ package info.elepha.security.totp;
 
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
+import java.sql.Date;
+import java.util.Calendar;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -20,7 +22,7 @@ import javax.crypto.spec.SecretKeySpec;
  * @author Gregor "hrax" Magdolen
  * @version $Id$
  */
-public final class TOTP {
+public class TOTPManager {
 
 	private static final int[] DIGITS_POWER
     // 0  1   2    3     4      5       6        7         8
@@ -46,6 +48,8 @@ public final class TOTP {
 	 */
 	public static final int DEFAULT_LENGTH = 6;
 	
+	public static final int DEFAULT_T0 = 0;
+	
 	private final String algorithm;
 	
 	private final int interval;
@@ -54,11 +58,17 @@ public final class TOTP {
 	
 	private final int steps;
 	
+	private final int t0;
+	
 	/**
 	 * Create default TOTP instance that is Google Authenticator compatible
 	 */
-	public TOTP() {
-		this(DEFAULT_ALGORITHM, DEFAULT_INTERVAL, DEFAULT_LENGTH, DEFAULT_STEPS);
+	public TOTPManager() {
+		this(DEFAULT_ALGORITHM, DEFAULT_INTERVAL, DEFAULT_LENGTH, DEFAULT_STEPS, DEFAULT_T0);
+	}
+	
+	public TOTPManager(String algorithm, int interval) {
+		this(algorithm, interval, DEFAULT_LENGTH, DEFAULT_STEPS, DEFAULT_T0);
 	}
 	
 	/**
@@ -66,12 +76,12 @@ public final class TOTP {
 	 * 
 	 * @param interval the time interval to use
 	 */
-	public TOTP(int interval) {
-		this(DEFAULT_ALGORITHM, interval, DEFAULT_LENGTH, DEFAULT_STEPS);
+	public TOTPManager(int interval) {
+		this(DEFAULT_ALGORITHM, interval, DEFAULT_LENGTH, DEFAULT_STEPS, DEFAULT_T0);
 	}
 
-	public TOTP(int interval, int length, int steps) {
-		this(DEFAULT_ALGORITHM, interval, length, steps);
+	public TOTPManager(int interval, int length, int steps) {
+		this(DEFAULT_ALGORITHM, interval, length, steps, DEFAULT_T0);
 	}
 	
 	/**
@@ -81,11 +91,12 @@ public final class TOTP {
 	 * @param interval the time interval in seconds to use
 	 * @param length the code length to use; must be between 1 and 8
 	 */
-	public TOTP(String algorithm, int interval, int length, int steps) {
+	public TOTPManager(String algorithm, int interval, int length, int steps, int t0) {
 		this.algorithm = algorithm;
 		this.interval = Math.abs(interval);
 		this.length = Math.abs(length);
 		this.steps = Math.abs(steps);
+		this.t0 = t0;
 		
 		if (length > DIGITS_POWER.length || length < 1) {
 			throw new IllegalArgumentException("Length must be between 1 and 8");
@@ -95,29 +106,33 @@ public final class TOTP {
 	/**
 	 * @return the algorithm being used
 	 */
-	public String getAlgorithm() {
+	public final String getAlgorithm() {
 		return algorithm;
 	}
 	
 	/**
 	 * @return the interval being used
 	 */
-	public int getInterval() {
+	public final int getInterval() {
 		return interval;
 	}
 	
 	/**
 	 * @return the length being used
 	 */
-	public int getLength() {
+	public final int getLength() {
 		return length;
 	}
 	
 	/**
 	 * @return the steps being used
 	 */
-	public int getSteps() {
+	public final int getSteps() {
 		return steps;
+	}
+	
+	public final int getT0() {
+		return t0;
 	}
 	
 	/**
@@ -125,9 +140,9 @@ public final class TOTP {
 	 * 
 	 * @param secret the secret to use
 	 * @return generated code
-	 * @see TOTPSecret#generate()
+	 * @see Secret#generate()
 	 */
-	public int generate(byte[] secret) {
+	public final String generate(byte[] secret) {
 		return generate(secret, getCurrentTimeInterval());
 	}
 	
@@ -137,15 +152,15 @@ public final class TOTP {
 	 * @param secret the secret to use
 	 * @param code the code to validate
 	 * @return true if code is valid
-	 * @see TOTPSecret#generate()
+	 * @see Secret#generate()
 	 */
-	public boolean validate(byte[] secret, int code) {
+	public final boolean validate(byte[] secret, String code) {
 		int steps = getSteps();
-		long t = getCurrentTimeInterval() - 1;
+		long itvl = getCurrentTimeInterval();
 		
-		for (int i = 1; i >= -steps; i--) {
-			int hash = generate(secret, t + i);
-			if (hash == code) {
+		for (int i = 0; i <= steps; i++) {
+			boolean result = validate(secret, itvl - i, code);
+			if (result) {
 				return true;
 			}
 		}
@@ -157,21 +172,32 @@ public final class TOTP {
 	 * Generates TOTP code for give time
 	 * 
 	 * @param secret the secret to use
-	 * @param time the time to use (in seconds!)
+	 * @param itvl the time interval to use
 	 * @return generated code
-	 * @see TOTPSecret#generate()
+	 * @see Secret#generate()
+	 * @see #getTimeInterval(long)
 	 */
-	int generate(byte[] secret, long time) {
-		byte[] text = ByteBuffer.allocate(8).putLong(time).array();
-		byte[] hash = getSha(secret, text);
+	final String generate(byte[] secret, long itvl) {
+		byte[] text = ByteBuffer.allocate(8).putLong(itvl).array();
+		byte[] hash = getShaHash(secret, text);
 		
 		int off = hash[hash.length-1] & 0xf;
 		int bin = ((hash[off] & 0x7f) << 24) | ((hash[off + 1] & 0xff) << 16) | ((hash[off + 2] & 0xff) << 8) | (hash[off + 3] & 0xff);
 
-		return bin % DIGITS_POWER[getLength()];
+		int otp = bin % DIGITS_POWER[getLength()];
+		String result = Integer.toString(otp);
+		while (result.length() < getLength()) {
+			result = "0" + result;
+		}
+		return result;
 	}
 	
-	private byte[] getSha(byte[] key, byte[] text) {
+	final boolean validate(byte[] secret, long itvl, String code) {
+		String hash = generate(secret, itvl);
+		return hash.equals(code);
+	}
+	
+	private byte[] getShaHash(byte[] key, byte[] text) {
 		try {
 			Mac mac = Mac.getInstance(getAlgorithm());
 			SecretKeySpec spec = new SecretKeySpec(key, "RAW");
@@ -182,8 +208,12 @@ public final class TOTP {
 		}
 	}
 	
-	private long getCurrentTimeInterval() {
-		return (System.currentTimeMillis() / 1000) / getInterval();
+	long getTimeInterval(long time) {
+		return ((time / 1000) - getT0()) / getInterval();
+	}
+	
+	long getCurrentTimeInterval() {
+		return getTimeInterval(System.currentTimeMillis());
 	}
 	
 }
