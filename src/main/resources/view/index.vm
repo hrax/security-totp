@@ -13,7 +13,7 @@
 		<script src="${request}/resources/js/respond.min.js"></script>
 		<![endif]-->
 		<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-		<script src="http://code.jquery.com/jquery.js"></script>
+		<script src="https://code.jquery.com/jquery.js"></script>
 		<script src="${request}/resources/js/totp.js"></script>
 		#if (!$isLocalhost)
 		<script>
